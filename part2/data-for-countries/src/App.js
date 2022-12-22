@@ -29,18 +29,54 @@ function App() {
     <div>
       <Query search={search} onChange={userInput} />
       {console.log(searchResult)}
-      <Display data={searchResult} searchBool={isSearch} />
+      <ShowMatches data={searchResult} />
+    </div>
+  )
+}
+
+const ShowMatches = ({ data }) => {
+
+  const [selected, setSelected] = useState('')
+  const [final, setFinal] = useState([])
+
+  let countriesToShow = []
+
+  function showUpTo5Matches() {
+    if (data.length > 5) {
+      return "Too many results, Filter down"
+    }
+    for (let item of data) {
+      countriesToShow.push(item.name.common)
+    }
+  }
+
+  function getCountry(event) {
+    setSelected(event.target.value)
+    for (let item of data) {
+      if (item.name.common === selected) {
+        setFinal([item])
+      }
+    }
+  }
+  return (
+    <div>
+      {showUpTo5Matches()}
+      {countriesToShow.map(country =>
+        <p>
+          {country} <button onClick={getCountry} value={country}>show</button>
+        </p>)}
+      <Display data={final} />
     </div>
   )
 }
 
 const Display = ({ data }) => {
 
-  let oneCountry;
+  let oneCountry; //[{..}]
 
   function toDisplay() {
     if (data.length > 5) {
-      return "Too many results, Filter down"
+      return
     } else if (data.length === 1) {
       oneCountry = data;
       return data[0].name.common
@@ -56,6 +92,12 @@ const Display = ({ data }) => {
 
 const CountryInfo = ({ data }) => {
 
+  const [capital, area, flag, languages] = data === undefined ? ['', '', '', ''] :
+    [data[0]['capital'],
+    data[0]['area'],
+    data[0]['flag'],
+    data[0]['languages']]
+
   const listOfLanguages = []
   const Languages = (data) => {
     for (const prop in data) {
@@ -63,13 +105,18 @@ const CountryInfo = ({ data }) => {
     }
   }
 
+  //weather in capital
+  //use capital lat and long from API
+  //then make an api call using https://openweathermap.org/current to retrieve weather data
+
   return (
     <>
-      <div>capital {data === undefined ? '' : data[0]['capital']} </div>
-      <div>area {data === undefined ? '' : data[0]['area']} </div>
-      <h4>Languages {data === undefined ? '' : Languages(data[0]['languages'])}</h4>
-      {data === undefined ? '' : listOfLanguages.map(lang => <li> {lang} </li>)}
-      <h1>{data === undefined ? '' : data[0]['flag']} </h1>
+      <div>capital {capital} </div>
+      <div>area {area} </div>
+      <h4>Languages {Languages(languages)}</h4>
+      {listOfLanguages.map(lang =>
+        <li> {lang} </li>)}
+      <h1>{flag} </h1>
     </>
   )
 }
