@@ -28,7 +28,6 @@ function App() {
   return (
     <div>
       <Query search={search} onChange={userInput} />
-      {console.log(searchResult)}
       <ShowMatches data={searchResult} />
     </div>
   )
@@ -38,9 +37,22 @@ const ShowMatches = ({ data }) => {
 
   const [selected, setSelected] = useState('')
   const [final, setFinal] = useState([])
+  const [capLatLng, setCapLatLng] = useState([])
+  const [weather, setWeather] = useState([])
+
+  const hook = () => {
+    const [lat, long] = capLatLng
+    const api_key = process.env.REACT_APP_API_KEY
+    axios
+      .get(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${long}&appid=${api_key}`)
+      .then(response => {
+        setWeather(response.data)
+      })
+  }
+
+  useEffect(hook, [capLatLng])
 
   let countriesToShow = []
-
   function showUpTo5Matches() {
     if (data.length > 5) {
       return "Too many results, Filter down"
@@ -54,6 +66,7 @@ const ShowMatches = ({ data }) => {
     setSelected(event.target.value)
     for (let item of data) {
       if (item.name.common === selected) {
+        setCapLatLng(item['capitalInfo']['latlng'])
         setFinal([item])
       }
     }
@@ -66,6 +79,7 @@ const ShowMatches = ({ data }) => {
           {country} <button onClick={getCountry} value={country}>show</button>
         </p>)}
       <Display data={final} />
+      <WeatherData data={weather} />
     </div>
   )
 }
@@ -92,12 +106,13 @@ const Display = ({ data }) => {
 
 const CountryInfo = ({ data }) => {
 
-  const [capital, area, flag, languages] = data === undefined ? ['', '', '', ''] :
+  const [capital, area, flag, languages, latlng] = data === undefined ? ['', '', '', ''] :
     [data[0]['capital'],
     data[0]['area'],
     data[0]['flag'],
-    data[0]['languages']]
-
+    data[0]['languages'],
+    data[0]['capitalInfo']['latlng']]
+    
   const listOfLanguages = []
   const Languages = (data) => {
     for (const prop in data) {
@@ -108,6 +123,7 @@ const CountryInfo = ({ data }) => {
   //weather in capital
   //use capital lat and long from API
   //then make an api call using https://openweathermap.org/current to retrieve weather data
+  //api key: https://home.openweathermap.org/api_keys
 
   return (
     <>
@@ -116,10 +132,36 @@ const CountryInfo = ({ data }) => {
       <h4>Languages {Languages(languages)}</h4>
       {listOfLanguages.map(lang =>
         <li> {lang} </li>)}
-      <h1>{flag} </h1>
+      <h1>{flag}</h1>
+      <h1>Weather in {capital}</h1>
     </>
   )
 }
+
+const WeatherData = ({ data }) => {
+
+  //const [temp, wind] = data == [] ? ['', ''] : [data.main.temp, data.wind.speed]
+  let [temp, wind, icon] = []
+  function parseWeather() {
+    if (data.length === 0) {
+      console.log('an array')
+      return
+    }
+    temp = (data.main.temp - 273.15).toFixed(2) + ' celsius'
+    wind = data.wind.speed
+    icon = data.weather[0].icon
+  }
+
+  return (
+    <>
+      {parseWeather()}
+      <p>temperature- {temp}</p>
+      <img src={`https://openweathermap.org/img/wn/${icon}@2x.png`}/>
+      <p>wind speed- {wind}</p>
+    </>
+  )
+}
+
 
 const Query = ({ search, onChange }) => {
   return (
