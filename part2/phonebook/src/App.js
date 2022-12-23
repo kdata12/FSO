@@ -11,6 +11,7 @@ const App = () => {
   const [newPhone, setNewPhone] = useState('')
   const [showPerson, setShowPerson] = useState('')
   const [showPersonBool, setShowPersonBool] = useState(false)
+  const [notifcation, setNotification] = useState(null)
 
   const hook = () => {
     phoneServices
@@ -44,6 +45,7 @@ const App = () => {
         setPersons([...persons, returnedData])
         setNewName('')
         setNewPhone('')
+        doNotification(returnedData.name, true)
       })
   }
 
@@ -54,10 +56,11 @@ const App = () => {
           phoneServices
             .update(newPerson, person.id)
             .then(returnedNewPerson => {
-              setPersons(persons.map(person => 
+              setPersons(persons.map(person =>
                 person.id !== returnedNewPerson.id ? person : returnedNewPerson))
               setNewName('')
               setNewPhone('')
+              doNotification(returnedNewPerson.name, true)
             })
         }
         return true
@@ -89,13 +92,32 @@ const App = () => {
           setPersons(persons.filter(person =>
             person.id !== id //filters out the person that we just removed
           ))
+
+        })
+        .catch(error => {
+          doNotification(personRequested[0].name, false)
+
+          setTimeout(() => setPersons(persons.filter(person =>
+            person.id !== personRequested[0].id
+          )), 1000)
         })
     }
+  }
+
+  const doNotification = (personName, success) => {
+    if (success) {
+      setNotification(`Added ${personName}`)
+      setTimeout(() => setNotification(null), 5000)
+      return
+    }
+    setNotification(`Information of ${personName} has already been removed from the server`)
+    setTimeout(() => setNotification(null), 5000)
   }
 
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notifcation} />
       <Filter value={showPerson} onChange={setShow} />
       <h3>Add a new person</h3>
       <PersonForm onSubmit={addPerson} values={[newName, newPhone]} onChange={[changeName, changePhone]} />
@@ -103,6 +125,39 @@ const App = () => {
       <Person persons={personToShow} deleteOperation={deletePerson} />
     </div>
   )
+}
+
+const Notification = ({ message }) => {
+  let style;
+  if (message === null) {
+    return null;
+  }
+  if (message[0] !== 'A') {
+    style = {
+      color: 'red',
+      background: 'lightgrey',
+      fontSize: 20,
+      borderStyle: 'solid',
+      borderRadius: 5,
+      padding: 10,
+      marginBottom: 10
+    }
+  } else {
+    style = {
+      color: 'green',
+      background: 'lightgrey',
+      fontSize: 20,
+      borderStyle: 'solid',
+      borderRadius: 5,
+      padding: 10,
+      marginBottom: 10
+    }
+  }
+
+  return (
+    <div className='noti' style={style}>{message}</div>
+  )
+
 }
 
 export default App
