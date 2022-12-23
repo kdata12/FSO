@@ -1,9 +1,10 @@
-const Person = function ({ persons }) {
+const Person = function ({ persons, deleteOperation }) {
     return (
         <>
             {persons.map(person =>
-                <p>
+                <p key={person.id}>
                     {person.name} {person.number}
+                     <button onClick={() => deleteOperation(person.id)}>delete</button>
                 </p>
             )}
         </>

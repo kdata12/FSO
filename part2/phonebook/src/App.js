@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
-import {Person, PersonForm, Filter} from './components/phoneComp'
-import axios from 'axios'
+import { Person, PersonForm, Filter } from './components/phoneComp'
+import phoneServices from './services/phoneServices'
+
 
 const App = () => {
   const [persons, setPersons] = useState([
@@ -12,10 +13,10 @@ const App = () => {
   const [showPersonBool, setShowPersonBool] = useState(false)
 
   const hook = () => {
-    axios
-      .get("http://localhost:3000/persons")
-      .then(response => {
-        setPersons(response.data)
+    phoneServices
+      .getAll()
+      .then(returnedData => {
+        setPersons(returnedData)
       })
   }
 
@@ -35,15 +36,30 @@ const App = () => {
       return;
     }
 
-    setPersons([...persons, newPerson]) //copy list and add new person
-    setNewName('') //reset newName to blank
-    setNewPhone('')
+    //update backend
+    phoneServices
+      .create(newPerson)
+      .then(returnedData => {
+        //update UI
+        setPersons([...persons, returnedData])
+        setNewName('')
+        setNewPhone('')
+      })
   }
 
   const checkDuplicate = (newPerson) => {
     for (let person of persons) {
       if (person.name === newPerson.name) {
-        alert(`${newPerson.name} is already added to phonebook`)
+        if (window.confirm(`${person.name} is already added in the phonebook, replace old number with the new number?`)) {
+          phoneServices
+            .update(newPerson, person.id)
+            .then(returnedNewPerson => {
+              setPersons(persons.map(person => 
+                person.id !== returnedNewPerson.id ? person : returnedNewPerson))
+              setNewName('')
+              setNewPhone('')
+            })
+        }
         return true
       }
     }
@@ -62,8 +78,20 @@ const App = () => {
     setShowPersonBool(event.target.value.length > 0)
   }
 
-  //if showPersonBool is false then show everyone
-  //else only show requested names
+  const deletePerson = (id) => {
+    const personRequested = persons.filter(person => person.id === id) //returns an array with 1 object
+    if (window.confirm(`delete ${personRequested[0].name}?`)) {
+      //detele person from backend
+      phoneServices
+        .deleteId(id)
+        .then(deletePerson => {
+          //remove person from ui
+          setPersons(persons.filter(person =>
+            person.id !== id //filters out the person that we just removed
+          ))
+        })
+    }
+  }
 
   return (
     <div>
@@ -72,7 +100,7 @@ const App = () => {
       <h3>Add a new person</h3>
       <PersonForm onSubmit={addPerson} values={[newName, newPhone]} onChange={[changeName, changePhone]} />
       <h2>Numbers</h2>
-      <Person persons={personToShow}/>
+      <Person persons={personToShow} deleteOperation={deletePerson} />
     </div>
   )
 }
