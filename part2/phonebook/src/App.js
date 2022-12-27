@@ -116,7 +116,7 @@ const App = () => {
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <h2>Phonebook helo from the other side</h2>
       <Notification message={notifcation} />
       <Filter value={showPerson} onChange={setShow} />
       <h3>Add a new person</h3>

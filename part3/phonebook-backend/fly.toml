@@ -1,6 +1,6 @@
-# fly.toml file generated for kevin-notes-backend on 2022-12-25T19:57:26-07:00
+# fly.toml file generated for kevin-phonebook-backend on 2022-12-26T09:57:46-07:00
 
-app = "kevin-notes-backend"
+app = "kevin-phonebook-backend"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
