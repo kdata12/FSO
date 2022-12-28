@@ -1,44 +1,22 @@
-const http = require('http')
+require('dotenv').config()
 const express = require('express')
-const morgan = require('morgan')
 const cors = require('cors')
 
+const People = require('./models/people')
+
 const app = express()
+
+app.use(express.json())
+
 app.use(cors())
+
 app.use(express.static('build'))
 
 
-let persons = [
-    {
-        "id": 1,
-        "name": "Arto Hellas",
-        "number": "040-123456"
-    },
-    {
-        "id": 2,
-        "name": "Ada Lovelace",
-        "number": "39-44-5323523"
-    },
-    {
-        "id": 3,
-        "name": "Dan Abramov",
-        "number": "12-43-234345"
-    },
-    {
-        "id": 4,
-        "name": "Mary Poppendieck",
-        "number": "39-23-6423122"
-    }
-]
-
-app.use(express.json())
-morgan.token('body', function (req, res) {
-    return JSON.stringify(req.body)
-})
-app.use(morgan(':method :url :status :res[content-length] :response-time ms :body'))
-
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    People.find({}).then(peopleData => {
+        response.json(peopleData)
+    })
 })
 
 app.get('/info', (request, response) => {
@@ -48,13 +26,10 @@ app.get('/info', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const person = getPerson(request)
-
-    if (person) {
-        response.json(person)
-    } else {
-        response.status(404).end()
-    }
+    const id = request.params.id
+    People.find({id: id}).then(result => {
+        return response.json(result)
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -67,38 +42,22 @@ app.delete('/api/persons/:id', (request, response) => {
 app.post('/api/persons', (request, response) => {
     const body = request.body
 
-    if (!body.name || !body.number) {
+    if (!body) {
         return response.status(400).json({
-            error: 'name missing'
-        })
-    } else if (nameExists(body.name)) {
-        return response.status(400).json({
-            error: 'name must be unique'
+            error: 'content missing'
         })
     }
 
-    const newPerson = {
+    const person = new People({
         name: body.name,
         number: body.number,
-        id: generateId()
-    }
+    })
 
-    persons = persons.concat(newPerson)
-
-    response.json(newPerson)
+    person.save().then(result => {
+        return response.json(result)
+    })
 })
 
-function nameExists(name) {
-    if (persons.find(p => p.name === name)) {
-        return true
-    }
-    return false
-}
-
-const generateId = () => {
-    const id = Math.max(...persons.map(p => p.id))
-    return id + 1
-}
 
 const getPerson = (request) => {
     return persons.find(p => p.id === Number(request.params.id))

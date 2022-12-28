@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { Person, PersonForm, Filter } from './components/phoneComp'
-import phoneServices from './services/phoneServices'
+import { Person, PersonForm, Filter } from './components/phoneComp.js'
+import phoneServices from './services/phoneServices.js'
 
 
 const App = () => {
@@ -157,7 +157,6 @@ const Notification = ({ message }) => {
   return (
     <div className='noti' style={style}>{message}</div>
   )
-
 }
 
 export default App

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose')
 
+
 if (process.argv.length < 3) {
   console.log('Invalid Format')
   console.log('Use correct format: node mongo.js <password>')
@@ -22,7 +23,7 @@ mongoose
   .connect(url)
   .then(result => {
     Note
-    .find({content: 'callback-function sucks'})
+    .find({})
     .then(data => {
       data.forEach(note => {
         console.log(note) 
