@@ -4,6 +4,7 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+    
         {
             "name": "Attach by Process ID",
             "processId": "${command:PickProcess}",
@@ -11,7 +12,9 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "node"
+            "type": "node",
+            "console": "externalTerminal",
+            "remoteRoot": "/app"
         },
         {
             "type": "pwa-node",
@@ -20,7 +23,8 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "program": "${workspaceFolder}/src/App.js"
+            "program": "${workspaceFolder}/src/App.js",
+            "remoteRoot": "/app"
         }
     ]
 }

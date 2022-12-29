@@ -47,6 +47,7 @@ const App = () => {
         setNewPhone('')
         doNotification(returnedData.name, true)
       })
+      .catch(error => doNotification('null', false, error.response.data.error))
   }
 
   const checkDuplicate = (newPerson) => {
@@ -92,7 +93,6 @@ const App = () => {
           setPersons(persons.filter(person =>
             person.id !== id //filters out the person that we just removed
           ))
-
         })
         .catch(error => {
           doNotification(personRequested[0].name, false)
@@ -104,9 +104,13 @@ const App = () => {
     }
   }
 
-  const doNotification = (personName, success) => {
+  const doNotification = (personName, success, error) => {
     if (success) {
       setNotification(`Added ${personName}`)
+      setTimeout(() => setNotification(null), 5000)
+      return
+    } else if (error) {
+      setNotification(error)
       setTimeout(() => setNotification(null), 5000)
       return
     }

@@ -2,8 +2,10 @@ require('dotenv').config()
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const mongoose = require('mongoose')
 const Note = require('./models/note')
+app.use(express.static('build'))
+app.use(express.json())
+app.use(cors())
 
 const requestLogger = (request, response, next) => {
   console.log('Method:', request.method)
@@ -13,23 +15,11 @@ const requestLogger = (request, response, next) => {
   next()
 }
 
-app.use(express.json())
-
 app.use(requestLogger)
 
-app.use(cors())
 
-app.use(express.static('build'))
-
-
-app.post('/api/notes', (request, response) => {
+app.post('/api/notes', (request, response, next) => {
   const body = request.body
-
-  if (!body.content) {
-    return response.status(400).send({
-      erorr: 'content missing'
-    })
-  }
 
   const note = new Note({
     content: body.content,
@@ -37,9 +27,11 @@ app.post('/api/notes', (request, response) => {
     date: new Date(),
   })
 
-  note.save().then(savedNote => {
-    response.json(savedNote)
-  })
+  note.save()
+    .then(savedNote => {
+      response.json(savedNote)
+    })
+    .catch(error => next(error))
 })
 
 app.get('/', (req, res) => {
@@ -53,18 +45,43 @@ app.get('/api/notes', (request, response) => {
   })
 })
 
-app.get('/api/notes/:id', (request, response) => {
+app.get('/api/notes/:id', (request, response, next) => {
   const id = request.params.id
-  Note.findById(id).then(note => {
-    response.json(note)
-  })
+  Note.findById(id)
+    .then(note => {
+      if (note) {
+        response.json(note)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch(error => next(error))
 })
 
-app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id)
-  notes = notes.filter(note => note.id !== id)
+app.delete('/api/notes/:id', (request, response, next) => {
+  const id = request.params.id
+  Note.findByIdAndRemove(id)
+    .then(() => {
+      response.status(204).end()
+    })
+    .catch(error => next(error))
 
-  response.status(204).end()
+})
+
+app.put('/api/notes/:id', (request, response, next) => {
+  const id = request.params.id
+  const { content, important } = request.body
+  console.log('hi')
+
+  Note.findByIdAndUpdate(
+    id,
+    { content, important },
+    { new: true, runValidators: true, context: 'query ' }
+  )
+    .then(updatedNote => {
+      response.json(updatedNote)
+    })
+    .catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
@@ -73,6 +90,19 @@ const unknownEndpoint = (request, response) => {
 
 app.use(unknownEndpoint)
 
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message })
+  }
+
+  next(error)
+}
+
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {

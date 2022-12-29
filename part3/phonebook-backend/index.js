@@ -1,9 +1,7 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
-
 const People = require('./models/people')
-
 const app = express()
 
 app.use(express.json())
@@ -20,50 +18,75 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
-    response.send(
-        `<p>Phone book has info for ${persons.length} people<p>
-        <p> ${new Date} <p>`)
-})
-
-app.get('/api/persons/:id', (request, response) => {
-    const id = request.params.id
-    People.find({id: id}).then(result => {
-        return response.json(result)
+    People.find({}).then(peopleData => {
+        response.json(peopleData)
     })
 })
 
-app.delete('/api/persons/:id', (request, response) => {
-    const deletePerson = getPerson(request)
-    persons = persons.filter(p => p.id !== deletePerson.id)
-
-    response.status(204).end()
+app.get('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id
+    People.findById(id).then(result => {
+        if (result) {
+            return response.json(result)
+        } else {
+            return response.status(400).end()
+        }
+    })
+        .catch(error => next(error))
 })
 
-app.post('/api/persons', (request, response) => {
-    const body = request.body
+app.delete('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id
 
-    if (!body) {
-        return response.status(400).json({
-            error: 'content missing'
+    People.findByIdAndDelete(id)
+        .then(result => {
+            return response.json(result).status(204).end()
         })
-    }
+        .catch(error => next(error))
+})
+
+app.post('/api/persons', (request, response, next) => {
+    const { name, number } = request.body
 
     const person = new People({
-        name: body.name,
-        number: body.number,
+        name: name,
+        number: number,
     })
 
-    person.save().then(result => {
-        return response.json(result)
-    })
+    person.save()
+        .then(result => {
+            return response.json(result)
+        })
+        .catch(error => next(error))
 })
 
+app.put('/api/persons/:id', (request, response, next) => {
+    const id = request.params.id
+    const { name, number } = request.body
 
-const getPerson = (request) => {
-    return persons.find(p => p.id === Number(request.params.id))
+    const person = {
+        name: name,
+        number: number
+    }
+
+    People.findByIdAndUpdate(id, person, { new: true, runValidators: true })
+        .then(newPerson => {
+            response.json(newPerson)
+        })
+        .catch(error => next(error))
+})
+
+const errorHandler = (error, request, response, next) => {
+    console.error(error.message)
+    if (error.name === 'ValidationError') {
+        return response.status(400).json({ error: error.message })
+    }
+    next(error)
 }
 
-const PORT = 3001
+app.use(errorHandler)
+
+const PORT = process.env.PORT
 app.listen(
     PORT,
     () => {
