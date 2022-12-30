@@ -21,13 +21,13 @@ const Note = mongoose.model('Note', noteSchema)
 
 mongoose
   .connect(url)
-  .then(result => {
+  .then(() => {
     Note
-    .find({})
-    .then(data => {
-      data.forEach(note => {
-        console.log(note) 
+      .find({})
+      .then(data => {
+        data.forEach(note => {
+          console.log(note)
+        })
+        mongoose.connection.close()
       })
-      mongoose.connection.close()
-    })
   })
