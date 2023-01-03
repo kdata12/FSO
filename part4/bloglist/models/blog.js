@@ -4,7 +4,7 @@ const blogSchema = new mongoose.Schema({
     author: String,
     title: String,
     url: String,
-    upvotes: Number
+    likes: Number
 })
 
 const Blog = mongoose.model('Blog', blogSchema)
