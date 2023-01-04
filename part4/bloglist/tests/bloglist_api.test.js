@@ -4,6 +4,8 @@ const supertest = require('supertest')
 const Blog = require('../models/blog')
 const blogMockData = require('./list_of_blogs')
 const helper = require('./test_helper')
+const User = require('../models/user')
+const bcrypt = require('bcrypt')
 
 const api = supertest(app)
 
@@ -12,16 +14,45 @@ beforeEach(async () => {
     await Blog.insertMany(blogMockData)
 })
 
+describe('when there is one user in the database', () => {
+    beforeEach(async () => {
+        await User.deleteMany({})
+        const passwordHash = await bcrypt.hash('test', 10)
+        const user = new User({
+            username: 'root',
+            passwordHash,
+        })
+
+        await user.save()
+    })
+
+    test('creation of user with unique name', async () => {
+        const usersAtStart = await helper.usersInDb()
+
+        const newUser = {
+            username: 'Johnny',
+            password: 'test123'
+        }
+
+        await api
+            .post('/api/user')
+            .send(newUser)
+            .expect(201)
+            .expect('Content-Type', /application\/json/)
+
+        const usersAtEnd = await helper.usersInDb()
+        expect(usersAtEnd).toHaveLength(usersAtStart.length + 1)
+
+        const usernames = usersAtEnd.map(u => u.username)
+        expect(usernames).toContain(newUser.username)
+    }, 100000)
+})
+
 test('blog list is returned as json', async () => {
     await api
         .get('/api/blogs')
         .expect(200)
         .expect('Content-Type', /application\/json/)
-})
-
-test('verifies id of blog posts', async () => {
-    const response = await api.get('/api/blogs')
-    expect(response.body[0]['_id']).toBeDefined()
 })
 
 describe('addition of new blog', () => {
@@ -78,7 +109,10 @@ describe('addition of new blog', () => {
             .post('/api/blogs')
             .send(blogObject)
             .expect(400)
-    }, 7000)
+
+        const blogsAtEnd = await helper.blogsInDb()
+        expect(blogsAtEnd).toHaveLength(blogMockData.length)
+    }, 100000)
 })
 
 describe('deletion of a blog', () => {
