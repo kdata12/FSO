@@ -1,8 +1,8 @@
 //App.js is responsible for loading all middleware
 
 const express = require('express')
-require('express-async-errors')
 const app = express()
+require('express-async-errors')
 const mongoose = require('mongoose')
 const cors = require('cors')
 const config = require('./utils/config')
@@ -24,6 +24,8 @@ mongoose.connect(config.MONGODB_URI)
 app.use(cors())
 app.use(express.json())
 
+app.use(middleware.tokenExtractor)
+app.use(middleware.userExtractor)
 app.use(middleware.requestLogger)
 
 app.use('/api/login', loginRouter)

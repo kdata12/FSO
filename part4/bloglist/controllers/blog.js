@@ -8,18 +8,9 @@ blogRouter.get('/', async (request, response) => {
     response.json(result)
 })
 
-const getTokenFrom = (request) => {
-    const authorization = request.get('authorization')
-    if (authorization && authorization.toLowerCase().startsWith('bearer ')) {
-        return authorization.substring(7)
-    }
-    return null
-}
-
 blogRouter.post('/', async (request, response) => {
     //validate token sent with each requests
-    const token = getTokenFrom(request)
-    const decodedToken = jwt.verify(token, process.env.SECRET)
+    const decodedToken = jwt.verify(request.token, process.env.SECRET)
 
     if (!decodedToken.id) {
         return response.status(401).json({
@@ -39,7 +30,7 @@ blogRouter.post('/', async (request, response) => {
         request.body.likes = 0
     }
 
-    const user = await User.findById(decodedToken.id)
+    const user = request.user
 
     const blog = new Blog({
         author: body.author,
@@ -54,13 +45,21 @@ blogRouter.post('/', async (request, response) => {
     await user.save()
 
     response.status(201).json(savedBlog)
-
 })
 
 blogRouter.delete('/:id', async (request, response) => {
+    //validate token
     const id = request.params.id
-    await Blog.findByIdAndRemove(id)
-    response.status(204).end()
+    const blog = await Blog.findById(id)
+
+    if (blog.user.toString() === request.user._id.toString()) {
+        await Blog.findByIdAndRemove(id)
+        response.status(204).end()
+    } else {
+        response.status(401).json({
+            error: 'Not authorized to delete note'
+        })
+    }
 })
 
 blogRouter.put('/:id', async (request, response) => {
