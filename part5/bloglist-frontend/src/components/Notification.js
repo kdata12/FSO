@@ -3,7 +3,7 @@ const Notification = ({ message }) => {
     if (message === null) {
         return
     }
-    if (message.startsWith('Wrong')) {
+    if (message.startsWith('Wrong') || message.startsWith('Error')) {
         style = {
             color: 'red',
             background: 'lightgrey',
@@ -13,7 +13,7 @@ const Notification = ({ message }) => {
             padding: 10,
             marginBottom: 10,
         }
-    } else if (message.startsWith('a new blog')) {
+    } else if (message.startsWith('a new blog') || message.startsWith('removed')) {
         style = {
             color: 'green',
             background: 'lightgrey',

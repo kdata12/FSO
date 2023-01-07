@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import blogService from './services/blogs'
 import loginService from './services/login'
@@ -18,8 +18,10 @@ const App = () => {
   const [notification, setNotification] = useState(null)
 
   useEffect(() => {
-    blogService.getAll().then(blogs =>
-      setBlogs(blogs)
+    blogService.getAll().then(blogs => {
+      const sortedBlogs = blogs.sort((a, b) => b.likes - a.likes)
+      setBlogs(sortedBlogs)
+    }
     )
   }, [])
 
@@ -67,6 +69,7 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
+
     } catch (exception) {
       setNotification('Wrong username or password')
       setTimeout(() => {
@@ -98,7 +101,7 @@ const App = () => {
       <LogOut user={user} handleLogOut={() => {
         setUser(null)
         window.localStorage.removeItem('loggedInUser')
-      }}/>
+      }} />
       <Togglable buttonLabel="create new blog">
         <BlogCreation
           addBlog={addBlog}
@@ -113,16 +116,53 @@ const App = () => {
     </div>
   )
 
+  const handleLike = async (event, blogID, blogUpvotes) => {
+    event.preventDefault()
+
+    const newBlog = {
+      likes: blogUpvotes + 1
+    }
+    //send a blog object
+    const result = await blogService
+      .incrementLike(newBlog, blogID)
+    const blogs = await blogService.getAll()
+    const sortedBlogs = blogs.sort((a, b) => b.likes - a.likes)
+    setBlogs(sortedBlogs)
+  }
+
+  const handleRemove = async (event, blogID) => {
+    event.preventDefault()
+    const deleteBlog = blogs.filter(blog => blog.id === blogID)
+    const userInput = window.confirm(`remove ${deleteBlog.title} by ${deleteBlog.author}`)
+    if (userInput) {
+      try {
+        await blogService.deleteBlog(blogID)
+        setBlogs(blogs.filter(blog => blog.id !== blogID))
+        setNotification(`removed "${deleteBlog.title}" by ${deleteBlog.author}`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 5500)
+      } catch (error) {
+        console.error(error)
+        setNotification(`Error --> ${error.message}`)
+        setTimeout(() => {
+          setNotification(null)
+        }, 5500)
+      }
+    }
+  }
+
   return (
     <div>
       <Notification message={notification} />
-
+      <h2>Blogs</h2>
       {user === null ? loginForm() : blogCreation()}
 
-      <h2>Blogs</h2>
       {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
+        <Blog key={blog.id} blog={blog} handleLike={handleLike} handleRemove={handleRemove} />
       )}
+
+
     </div>
   )
 }
