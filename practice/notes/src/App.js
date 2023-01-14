@@ -47,10 +47,11 @@ const App = () => {
     const changedNote = { ...note, important: !note.important }
 
     noteService
-      .update(changedNote).then(returnedNote => {
+      .update(id, changedNote)
+        .then(returnedNote => {
         setNotes(notes.map(note => note.id !== id ? note : returnedNote))
       })
-      .catch(error => {
+      .catch(() => {
         setErrorMessage(
           `Note '${note.content}' was already removed from server`
         )
