@@ -32,7 +32,7 @@ const Blog = ({ blog, handleLike, handleRemove }) => {
     <div>
       <div style={hideWhenVisible}>
         {blog.title}
-        <button onClick={toggleVisible}>view</button>
+        <button id="hide" onClick={toggleVisible}>hide</button>
         <div>
           <p>Link: {blog.url}</p>
         </div>
@@ -41,14 +41,14 @@ const Blog = ({ blog, handleLike, handleRemove }) => {
         </div>
         <div>
           <div>
-            <p>Likes: {blog.likes}</p>
+            <p id="likes-count"> Likes: {blog.likes}</p>
             <Like key={blog.id} handleLike={handleLike} blogID={blog.id} blogLikes={blog.likes} />
           </div>
           <RemoveBlog handleRemove={handleRemove} blogID={blog.id}/>
         </div>
       </div>
       <div style={showWhenVisible}>
-        {blog.title}<button onClick={toggleVisible}>hide</button>
+        {blog.title}<button id="view" onClick={toggleVisible}>view</button>
       </div>
     </div>
   )

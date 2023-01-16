@@ -1,7 +1,7 @@
 const Like = ({ handleLike, blogID, blogLikes}) => {
     return (
         <>
-            <button onClick={(event) => handleLike(event, blogID, blogLikes)}>like</button>
+            <button id="like" onClick={(event) => handleLike(event, blogID, blogLikes)}>like</button>
         </>
     )
 }

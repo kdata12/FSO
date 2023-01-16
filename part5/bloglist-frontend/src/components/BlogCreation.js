@@ -13,6 +13,7 @@ const BlogCreation = ({
                 title: <input
                     type="text"
                     name='title'
+                    id='title'
                     value={title}
                     onChange={handleTitle}
                 />
@@ -21,6 +22,7 @@ const BlogCreation = ({
                 author: <input
                     type="text"
                     name='author'
+                    id="author"
                     value={author}
                     onChange={handleAuthor}
 
@@ -30,11 +32,12 @@ const BlogCreation = ({
                 url: <input
                     type="text"
                     name='url'
+                    id="url"
                     value={url}
                     onChange={handleUrl}
                 />
             </div>
-            <button type='submit'>create</button>
+            <button type='submit' id="create-blog">create</button>
         </form>
     )
 }

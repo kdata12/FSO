@@ -41,6 +41,7 @@ const App = () => {
         <input
           type="text"
           name='username'
+          id='username'
           value={username}
           onChange={(event) => setUsername(event.target.value)}
         />
@@ -48,6 +49,7 @@ const App = () => {
           <input
             type="password"
             name='password'
+            id='password'
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />

@@ -1,7 +1,7 @@
 const RemoveBlog = ({ handleRemove, blogID }) => {
     return (
         <div>
-            <button onClick={(event) => handleRemove(event, blogID)}>remove</button>
+            <button id="remove-blog" onClick={(event) => handleRemove(event, blogID)}>remove</button>
         </div>
 
     )
