@@ -148,7 +148,7 @@ const resolvers = {
     bookCount: () => books.length,
     authorCount: () => authors.length,
     allBooks: (obj, args) => {
-      if (!args.author && !args.genre) return authors
+      if (!args.author && !args.genre) return books
       //has to work for both arguments
       if (!args.genre && args.author) {
         const byAuthor = books.filter(book => book.author === args.author)
