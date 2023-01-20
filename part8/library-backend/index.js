@@ -127,13 +127,15 @@ const typeDefs = gql`
 const resolvers = {
   Mutation: {
     addBook: (obj, args) => {
-      //add book to the database
       const newBook = {...args, id: uuid()}
       books = books.concat(newBook)
 
-      //save author to the database
-      const author = {name: args.author, id: uuid(), born: args.born}
-      authors = authors.concat(author)
+      const authorInDatabase = authors.find(author => author.name === args.author)
+
+      if (!authorInDatabase) {
+        const author = {name: args.author, id: uuid(), born: args.born}
+        authors = authors.concat(author)
+      }
       return newBook
     },
     editAuthor: (obj, args) => {
