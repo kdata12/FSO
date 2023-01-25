@@ -16,6 +16,7 @@ const calculateBmi = (height: number, weight: number): string => {
         case 30 < result && result < 34.9:
             return 'Obese (Class I)'
     }
+    return "No valid range"
 }
 
-console.log(calculateBmi(150,71))
+export default calculateBmi 

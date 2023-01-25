@@ -19,8 +19,6 @@ mongoose.connect(MONGODB_URI)
     console.log("error connection to MongoDB", error.message)
   })
 
-
-
 let persons = [
   {
     name: 'Arto Hellas',
